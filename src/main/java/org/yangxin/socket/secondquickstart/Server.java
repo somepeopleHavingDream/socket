@@ -1,4 +1,4 @@
-package org.yangxin.socket;
+package org.yangxin.socket.secondquickstart;
 
 import java.io.BufferedReader;
 import java.io.IOException;

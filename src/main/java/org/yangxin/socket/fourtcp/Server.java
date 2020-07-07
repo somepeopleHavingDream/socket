@@ -21,6 +21,7 @@ public class Server {
         initServerSocket(server);
 
         // 绑定到本地端口上
+        // backlog=50，会影响到操作系统中的accept queue队列接收请求的个数，接受的请求数就是此值与/proc/sys/net/core/somaxconn的值取最小
         server.bind(new InetSocketAddress(Inet4Address.getLocalHost(), PORT), 50);
 
         System.out.println("服务器准备就绪……");
@@ -116,7 +117,8 @@ public class Server {
 
                 // String
                 int position = byteBuffer.position();
-                String s = new String(buffer, position, readCount - position - 1);
+                String s = new String(buffer, position, readCount - position);
+//                String s = new String(buffer, position, readCount - position - 1);
 
                 System.out.println("收到数量："
                         + readCount

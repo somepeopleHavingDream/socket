@@ -81,7 +81,8 @@ public class Client {
         byteBuffer.put(str.getBytes());
 
         // 发送到服务器
-        outputStream.write(buffer, 0, byteBuffer.position() + 1);
+        outputStream.write(buffer, 0, byteBuffer.position());
+//        outputStream.write(buffer, 0, byteBuffer.position() + 1);
 
         // 接收服务器返回
         int read = inputStream.read(buffer);

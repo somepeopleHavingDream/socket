@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -19,10 +20,10 @@ public class ServerProvider {
 
     public static void start(int port) {
         stop();
+
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn, port);
         new Thread(provider).start();
-//        provider.start();
         PROVIDER_INSTANCE = provider;
     }
 
@@ -70,6 +71,7 @@ public class ServerProvider {
                     int clientPort = receivePack.getPort();
                     int clientDataLength = receivePack.getLength();
                     byte[] clientData = receivePack.getData();
+                    System.out.println("clientData: " + Arrays.toString(clientData));
                     boolean isValid = clientDataLength >= (UDPConstants.HEADER.length + 2 + 4)
                             && ByteUtils.startsWith(clientData, UDPConstants.HEADER);
 
@@ -113,8 +115,7 @@ public class ServerProvider {
                         System.out.println("ServerProvider receive cmd nonsupport; cmd: " + cmd + "\tport: " + port);
                     }
                 }
-            } catch (IOException e) {
-//                e.printStackTrace();
+            } catch (IOException ignored) {
             } finally {
                 close();
             }

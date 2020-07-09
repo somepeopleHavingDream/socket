@@ -10,5 +10,6 @@ public class Client {
 
     public static void main(String[] args) {
         ServerInfo info = ClientSearch.searchServer(10000);
+        System.out.println("Server: " + info);
     }
 }

@@ -9,7 +9,7 @@ public class UDPConstants {
     /**
      * 公有头部
      */
-    public static byte[] HEADER = new byte[] {7, 7, 7, 7, 7, 7, 7};
+    public static byte[] HEADER = new byte[] {7, 7, 7, 7, 7, 7, 7, 7};
 
     /**
      * 服务器固话UDP接收端口

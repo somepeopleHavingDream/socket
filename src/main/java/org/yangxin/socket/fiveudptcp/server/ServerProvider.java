@@ -90,6 +90,7 @@ public class ServerProvider {
                             ((clientData[index++] & 0xff) << 16) |
                             ((clientData[index++] & 0xff) << 8) |
                             ((clientData[index] & 0xff)));
+                    System.out.println("cmd: " + cmd + " responsePort: " + responsePort);
 
                     // 判断合法性
                     if (cmd == 1 && responsePort > 0) {

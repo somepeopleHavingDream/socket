@@ -1,6 +1,6 @@
-package org.yangxin.socket.fiveudptcp.server;
+package org.yangxin.socket.fiveudptcp.udp.server;
 
-import org.yangxin.socket.fiveudptcp.constants.TCPConstants;
+import org.yangxin.socket.fiveudptcp.udp.constants.TCPConstants;
 
 import java.io.IOException;
 

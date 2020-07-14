@@ -1,6 +1,7 @@
-package org.yangxin.socket.fiveudptcp.client;
+package org.yangxin.socket.fiveudptcp.udp.client;
 
-import org.yangxin.socket.fiveudptcp.client.bean.ServerInfo;
+
+import org.yangxin.socket.fiveudptcp.udp.client.bean.ServerInfo;
 
 /**
  * @author yangxin

@@ -1,4 +1,4 @@
-package org.yangxin.socket.fiveudptcp.constants;
+package org.yangxin.socket.fiveudptcp.udp.constants;
 
 /**
  * @author yangxin

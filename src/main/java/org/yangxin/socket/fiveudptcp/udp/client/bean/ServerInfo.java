@@ -1,4 +1,4 @@
-package org.yangxin.socket.fiveudptcp.client.bean;
+package org.yangxin.socket.fiveudptcp.udp.client.bean;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

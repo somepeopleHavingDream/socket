@@ -1,4 +1,4 @@
-package org.yangxin.socket.fiveudptcp.clink.utils;
+package org.yangxin.socket.fiveudptcp.udp.clink.utils;
 
 /**
  * @author yangxin

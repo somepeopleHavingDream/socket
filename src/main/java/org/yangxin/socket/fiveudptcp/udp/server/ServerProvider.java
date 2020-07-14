@@ -1,7 +1,7 @@
-package org.yangxin.socket.fiveudptcp.server;
+package org.yangxin.socket.fiveudptcp.udp.server;
 
-import org.yangxin.socket.fiveudptcp.clink.utils.ByteUtils;
-import org.yangxin.socket.fiveudptcp.constants.UDPConstants;
+import org.yangxin.socket.fiveudptcp.udp.clink.utils.ByteUtils;
+import org.yangxin.socket.fiveudptcp.udp.constants.UDPConstants;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

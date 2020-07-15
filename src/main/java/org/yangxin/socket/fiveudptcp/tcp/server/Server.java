@@ -1,7 +1,8 @@
 package org.yangxin.socket.fiveudptcp.tcp.server;
 
 import org.yangxin.socket.fiveudptcp.tcp.constants.TCPConstants;
-import org.yangxin.socket.thirdudp.UDPProvider;
+
+import java.io.IOException;
 
 /**
  * @author yangxin
@@ -9,6 +10,7 @@ import org.yangxin.socket.thirdudp.UDPProvider;
  */
 public class Server {
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void main(String[] args) {
         TCPServer tcpServer = new TCPServer(TCPConstants.PORT_SERVER);
         boolean isSucceed = tcpServer.start();
@@ -17,7 +19,15 @@ public class Server {
             return;
         }
 
-        // todo
-//        UDPProvider.start(TCPConstants.PORT_SERVER);
+        UDPProvider.start(TCPConstants.PORT_SERVER);
+
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        UDPProvider.stop();
+        tcpServer.stop();
     }
 }

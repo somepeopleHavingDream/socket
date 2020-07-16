@@ -20,6 +20,7 @@ public class UDPSearcher {
 
     private static final Integer LISTEN_PORT = UDPConstants.PORT_CLIENT_RESPONSE;
 
+    @SuppressWarnings("DuplicatedCode")
     public static ServerInfo searchServer(int timeout) {
         System.out.println("UDPSearcher started...");
 
@@ -27,18 +28,23 @@ public class UDPSearcher {
         CountDownLatch receiveLatch = new CountDownLatch(1);
         Listener listener = null;
         try {
+            // 监听服务端对udp信息的响应
             listener = listen(receiveLatch);
+            // 广播
             sendBroadcast();
+            // 计时等待服务器的回送消息处理完毕
             receiveLatch.await(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
 
-        // 完成
+        // 完成，获得广播和服务端响应信息的处理结果
         System.out.println("UDPSearcher Finished.");
         if (listener == null) {
             return null;
         }
+
+        // 返回服务端tcp端相关端口的信息
         List<ServerInfo> devices = listener.getServerAndClose();
         if (devices.size() > 0) {
             return devices.get(0);
@@ -46,6 +52,7 @@ public class UDPSearcher {
         return null;
     }
 
+    @SuppressWarnings("DuplicatedCode")
     private static void sendBroadcast() throws IOException {
         System.out.println("UDPSearcher sendBroadcast started.");
 
@@ -82,6 +89,8 @@ public class UDPSearcher {
         CountDownLatch startDownLatch = new CountDownLatch(1);
         Listener listener = new Listener(LISTEN_PORT, startDownLatch, receiveLatch);
         new Thread(listener).start();
+
+        // 已启动监听，释放门闩
         startDownLatch.await();
         return listener;
     }
@@ -108,6 +117,7 @@ public class UDPSearcher {
             this.receiveDownLatch = receiveDownLatch;
         }
 
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public void run() {
             // 通知已启动

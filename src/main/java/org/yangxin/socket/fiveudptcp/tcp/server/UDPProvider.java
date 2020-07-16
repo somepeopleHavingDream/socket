@@ -60,7 +60,7 @@ public class UDPProvider {
             System.out.println("UDPProvider started...");
 
             try {
-                // 监听30201端口
+                // 监听30201端口，事实上如果udp是广播消息，此处也可以监听到
                 datagramSocket = new DatagramSocket(UDPConstants.PORT_SERVER);
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);

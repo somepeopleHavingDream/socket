@@ -8,15 +8,21 @@ import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
+/**
+ * @author yangxin
+ * 2020/07/16 21:10
+ */
 public class UDPProvider {
 
     private static Provider PROVIDER_INSTANCE;
 
     public static void start(Integer port) {
         stop();
+
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn, port);
-        provider.start();
+        new Thread(provider).start();
+        //        provider.start();
         PROVIDER_INSTANCE = provider;
     }
 
@@ -27,7 +33,14 @@ public class UDPProvider {
         }
     }
 
-    private static class Provider extends Thread {
+    /**
+     *负责处理udp请求，并返回服务器监听的tcp端口信息
+     *
+     * @author yangxin
+     * 2020/07/16 21:08
+     */
+    private static class Provider implements Runnable {
+//    private static class Provider extends Thread {
         private final byte[] sn;
         private final int port;
         private boolean done = false;
@@ -41,20 +54,17 @@ public class UDPProvider {
             this.port = port;
         }
 
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public void run() {
-            super.run();
-
             System.out.println("UDPProvider Started.");
-
             try {
-                // 监听20000 端口
+                // 监听30201端口，但其实通过广播发过来的udp消息也可以接收到
                 ds = new DatagramSocket(UDPConstants.PORT_SERVER);
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
 
                 while (!done) {
-
                     // 接收
                     ds.receive(receivePack);
 

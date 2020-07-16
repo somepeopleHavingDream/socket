@@ -14,6 +14,6 @@ import lombok.NoArgsConstructor;
 public class ServerInfo {
 
     private Integer port;
-    private String sn;
     private String address;
+    private String sn;
 }

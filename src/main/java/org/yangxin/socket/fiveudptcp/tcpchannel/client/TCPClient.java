@@ -9,6 +9,10 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+/**
+ * @author yangxin
+ * 2020/07/16 21:19
+ */
 public class TCPClient {
 
     public static void linkWith(ServerInfo info) throws IOException {
@@ -24,8 +28,10 @@ public class TCPClient {
         System.out.println("服务器信息：" + socket.getInetAddress() + " P:" + socket.getPort());
 
         try {
+            // 启动处理读事件线程
             ReadHandler readHandler = new ReadHandler(socket.getInputStream());
-            readHandler.start();
+            new Thread(readHandler).start();
+//            readHandler.start();
 
             // 发送接收数据
             write(socket);
@@ -65,7 +71,12 @@ public class TCPClient {
         socketPrintStream.close();
     }
 
-    static class ReadHandler extends Thread {
+    /**
+     * @author yangxin
+     * 2020/07/16 21:20
+     */
+    static class ReadHandler implements Runnable {
+//    static class ReadHandler extends Thread {
         private boolean done = false;
         private final InputStream inputStream;
 
@@ -75,7 +86,6 @@ public class TCPClient {
 
         @Override
         public void run() {
-            super.run();
             try {
                 // 得到输入流，用于接收数据
                 BufferedReader socketInput = new BufferedReader(new InputStreamReader(inputStream));
@@ -92,6 +102,7 @@ public class TCPClient {
                         System.out.println("连接已关闭，无法读取数据！");
                         break;
                     }
+
                     // 打印到屏幕
                     System.out.println(str);
                 } while (!done);

@@ -28,7 +28,9 @@ public class UDPSearcher {
         CountDownLatch receiveLatch = new CountDownLatch(1);
         Listener listener = null;
         try {
+            // 监听服务端的udp回送消息
             listener = listen(receiveLatch);
+            // 发送广播消息
             sendBroadcast();
             receiveLatch.await(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | IOException e) {
@@ -41,6 +43,7 @@ public class UDPSearcher {
             return null;
         }
 
+        // 返回服务端信息
         List<ServerInfo> deviceList = listener.getServerAndClose();
         if (deviceList.size() > 0) {
             return deviceList.get(0);

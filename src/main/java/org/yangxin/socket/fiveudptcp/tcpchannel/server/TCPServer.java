@@ -8,11 +8,15 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author yangxin
+ * 2020/07/16 21:03
+ */
 public class TCPServer {
 
     private final int port;
     private ClientListener mListener;
-    private List<ClientHandler> clientHandlerList = new ArrayList<>();
+    private final List<ClientHandler> clientHandlerList = new ArrayList<>();
 
     public TCPServer(int port) {
         this.port = port;
@@ -28,7 +32,8 @@ public class TCPServer {
         try {
             ClientListener listener = new ClientListener(port);
             mListener = listener;
-            listener.start();
+            new Thread(listener).start();
+            //            listener.start();
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -48,8 +53,15 @@ public class TCPServer {
         clientHandlerList.clear();
     }
 
-    private class ClientListener extends Thread {
-        private ServerSocket server;
+    /**
+     * 负责对客户端进行监听
+     *
+     * @author yangxin
+     * 2020/07/16 21:03
+     */
+    private class ClientListener implements Runnable {
+
+        private final ServerSocket server;
         private boolean done = false;
 
         private ClientListener(int port) throws IOException {
@@ -59,9 +71,8 @@ public class TCPServer {
 
         @Override
         public void run() {
-            super.run();
-
             System.out.println("服务器准备就绪～");
+
             // 等待客户端连接
             do {
                 // 得到客户端
@@ -71,10 +82,11 @@ public class TCPServer {
                 } catch (IOException e) {
                     continue;
                 }
+
                 try {
                     // 客户端构建异步线程
                     ClientHandler clientHandler = new ClientHandler(client,
-                            handler -> clientHandlerList.remove(handler));
+                            clientHandlerList::remove);
                     // 读取数据并打印
                     clientHandler.readToPrint();
                     clientHandlerList.add(clientHandler);

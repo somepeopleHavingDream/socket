@@ -7,6 +7,12 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 服务端对客户端发送过来的tcp消息进行处理
+ *
+ * @author yangxin
+ * 2020/07/16 21:30
+ */
 public class ClientHandler {
 
     private final Socket socket;
@@ -23,6 +29,9 @@ public class ClientHandler {
                 " P:" + socket.getPort());
     }
 
+    /**
+     * 读写线程处理器全部退出
+     */
     public void exit() {
         readHandler.exit();
         writeHandler.exit();
@@ -31,25 +40,39 @@ public class ClientHandler {
                 " P:" + socket.getPort());
     }
 
+    /**
+     * exitBySelf()方法是对exit()方法的进一步包装，增加了closeNotify.onSelfClosed(this)代码
+     * ，移除了服务端对客户端的所有连接
+     */
     private void exitBySelf() {
         exit();
         closeNotify.onSelfClosed(this);
     }
 
     public void readToPrint() {
-        readHandler.start();
+        new Thread(readHandler).start();
     }
 
     public void send(String str) {
         writeHandler.send(str);
     }
 
-
+    /**
+     * @author yangxin
+     * 2020/07/16 21:33
+     */
     public interface CloseNotify {
         void onSelfClosed(ClientHandler handler);
     }
 
-    class ClientReadHandler extends Thread {
+    /**
+     * 对客户端发送过来消息进行读事件处理
+     *
+     * @author yangxin
+     * 2020/06/16 21:32
+     */
+    class ClientReadHandler implements Runnable {
+
         private boolean done = false;
         private final InputStream inputStream;
 
@@ -59,7 +82,6 @@ public class ClientHandler {
 
         @Override
         public void run() {
-            super.run();
             try {
                 // 得到输入流，用于接收数据
                 BufferedReader socketInput = new BufferedReader(new InputStreamReader(inputStream));
@@ -93,7 +115,14 @@ public class ClientHandler {
         }
     }
 
-    class ClientWriteHandler {
+    /**
+     * 服务端写入数据给客户端
+     *
+     * @author yangxin
+     * 2020/07/16 21:35
+     */
+    static class ClientWriteHandler {
+
         private boolean done = false;
         private final PrintStream printStream;
         private final ExecutorService executorService;
@@ -106,14 +135,20 @@ public class ClientHandler {
         void exit() {
             done = true;
             CloseUtils.close(printStream);
-            executorService.shutdownNow();
+            executorService.shutdown();
+//            executorService.shutdownNow();
         }
 
         void send(String str) {
             executorService.execute(new WriteRunnable(str));
         }
 
+        /**
+         * @author yangxin
+         * 2020/07/16 21:40
+         */
         class WriteRunnable implements Runnable {
+
             private final String msg;
 
             WriteRunnable(String msg) {

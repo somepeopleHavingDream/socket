@@ -12,12 +12,13 @@ import java.io.IOException;
 public class Client {
 
     public static void main(String[] args) {
-//        UDPSearcher.searchServer(10000);
+        // 通过udp广播，获知服务器tcp端口相关信息
         ServerInfo info = UDPSearcher.searchServer(10000);
         System.out.println("Server:" + info);
 
         if (info != null) {
             try {
+                // 对服务端发起tcp点对点连接
                 TCPClient.linkWith(info);
             } catch (IOException e) {
                 e.printStackTrace();

@@ -19,6 +19,7 @@ public class UDPProvider {
 
     static void start(int port) {
         stop();
+
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn, port);
         new Thread(provider).start();
@@ -53,12 +54,13 @@ public class UDPProvider {
             this.port = port;
         }
 
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public void run() {
             System.out.println("UDPProvider started...");
 
             try {
-                // 监听20000端口
+                // 监听30201端口
                 datagramSocket = new DatagramSocket(UDPConstants.PORT_SERVER);
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
@@ -92,6 +94,7 @@ public class UDPProvider {
                             ((clientData[index++] & 0xff) << 16) |
                             ((clientData[index++] & 0xff) << 8) |
                             ((clientData[index] & 0xff)));
+                    System.out.println("cmd: " + cmd + " responsePort: " + responsePort);
 
                     // 判断合法性
                     if (cmd == 1 && responsePort > 0) {

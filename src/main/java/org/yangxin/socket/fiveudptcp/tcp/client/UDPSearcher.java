@@ -20,6 +20,7 @@ public class UDPSearcher {
 
     private static final Integer LISTEN_PORT = UDPConstants.PORT_CLIENT_RESPONSE;
 
+    @SuppressWarnings("DuplicatedCode")
     public static ServerInfo searchServer(int timeout) {
         System.out.println("UDPSearcher started...");
 
@@ -47,6 +48,7 @@ public class UDPSearcher {
         return null;
     }
 
+    @SuppressWarnings("DuplicatedCode")
     private static void sendBroadcast() throws IOException {
         System.out.println("UDPSearcher sendBroadcast started...");
 
@@ -79,11 +81,10 @@ public class UDPSearcher {
     private static Listener listen(CountDownLatch receiveLatch) throws InterruptedException {
         System.out.println("UDPSearcher start listen...");
 
-        CountDownLatch startDownLatch = new CountDownLatch(1);
-        Listener listener = new Listener(LISTEN_PORT, startDownLatch, receiveLatch);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        Listener listener = new Listener(LISTEN_PORT, startLatch, receiveLatch);
         new Thread(listener).start();
-//        listener.start();
-        startDownLatch.await();
+        startLatch.await();
         return listener;
     }
 
@@ -92,27 +93,27 @@ public class UDPSearcher {
      * 2020/07/14 21:13
      */
     private static class Listener implements Runnable {
-//    private static class Listener extends Thread {
 
         private final int listenPort;
-        private final CountDownLatch startDownLatch;
-        private final CountDownLatch receiveDownLatch;
+        private final CountDownLatch startLatch;
+        private final CountDownLatch receiveLatch;
         private final List<ServerInfo> serverInfoList = new ArrayList<>();
         private final byte[] buffer = new byte[128];
         private final int minLength = UDPConstants.HEADER.length + 2 + 4;
         private boolean done = false;
         private DatagramSocket datagramSocket = null;
 
-        private Listener(int listenPort, CountDownLatch startDownLatch, CountDownLatch receiveDownLatch) {
+        private Listener(int listenPort, CountDownLatch startLatch, CountDownLatch receiveLatch) {
             this.listenPort = listenPort;
-            this.startDownLatch = startDownLatch;
-            this.receiveDownLatch = receiveDownLatch;
+            this.startLatch = startLatch;
+            this.receiveLatch = receiveLatch;
         }
 
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public void run() {
             // 通知已启动
-            startDownLatch.countDown();
+            startLatch.countDown();
 
             try {
                 // 监听回送端口
@@ -154,10 +155,9 @@ public class UDPSearcher {
                     serverInfoList.add(serverInfo);
 
                     // 成功接收到一份
-                    receiveDownLatch.countDown();
+                    receiveLatch.countDown();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignored) {
             } finally {
                 close();
             }

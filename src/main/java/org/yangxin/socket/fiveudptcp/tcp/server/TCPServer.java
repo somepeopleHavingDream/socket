@@ -14,7 +14,7 @@ import java.net.Socket;
 public class TCPServer {
 
     private final int port;
-    private ClientListener mListener;
+    private ClientListener clientListener;
 
     public TCPServer(int port) {
         this.port = port;
@@ -22,8 +22,8 @@ public class TCPServer {
 
     public boolean start() {
         try {
-            mListener = new ClientListener(port);
-            new Thread(mListener).start();
+            clientListener = new ClientListener(port);
+            new Thread(clientListener).start();
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -33,8 +33,8 @@ public class TCPServer {
     }
 
     public void stop() {
-        if (mListener != null) {
-            mListener.exit();
+        if (clientListener != null) {
+            clientListener.exit();
         }
     }
 
@@ -101,6 +101,7 @@ public class TCPServer {
             this.socket = socket;
         }
 
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public void run() {
             System.out.println("新客户端连接：" + socket.getInetAddress() + " P: " + socket.getPort());

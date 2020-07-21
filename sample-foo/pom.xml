@@ -5,36 +5,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.yangxin.socket</groupId>
-  <artifactId>socket</artifactId>
-  <packaging>pom</packaging>
+  <artifactId>sample-foo</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <modules>
-    <module>lib-clink</module>
-    <module>sample-foo</module>
-    <module>sample-client</module>
-      <module>sample-server</module>
-  </modules>
 
-  <name>socket</name>
+  <name>sample-foo</name>
   <url>http://www.example.com</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 
   <dependencies>
-    <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-    <!--suppress MavenDuplicateDependenciesInspection -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.12</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <!--suppress MavenDuplicateDependenciesInspection -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

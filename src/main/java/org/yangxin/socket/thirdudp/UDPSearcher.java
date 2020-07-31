@@ -37,7 +37,10 @@ public class UDPSearcher {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         Listener listener = new Listener(LISTEN_PORT, countDownLatch);
-        new Thread(listener).start();
+        Thread thread = new Thread(listener);
+        thread.start();
+        listener.setThread(thread);
+//        new Thread(listener).start();
 
         countDownLatch.await();
 
@@ -66,19 +69,33 @@ public class UDPSearcher {
         }
     }
 
+    /**
+     * @author yangxin
+     * 2020/07/31 17:42
+     */
     private static class Listener implements Runnable {
 
         private final Integer listenPort;
         private final CountDownLatch countDownLatch;
         private final List<Device> deviceList = new ArrayList<>();
-        private boolean done = false;
+//        private boolean done = false;
         private DatagramSocket datagramSocket = null;
+        private Thread thread;
 
         private Listener(Integer listenPort, CountDownLatch countDownLatch) {
             this.listenPort = listenPort;
             this.countDownLatch = countDownLatch;
         }
 
+        public Thread getThread() {
+            return thread;
+        }
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
+        }
+
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public void run() {
             // 通知已启动
@@ -87,7 +104,8 @@ public class UDPSearcher {
             try {
                 // 监听回送端口
                 datagramSocket = new DatagramSocket(listenPort);
-                while (!done) {
+                while (!Thread.interrupted()) {
+//                while (!done) {
                     // 构建接收实体
                     final byte[] buffer = new byte[512];
                     DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
@@ -125,7 +143,8 @@ public class UDPSearcher {
         }
 
         List<Device> getDevicesAndClose() {
-            done = true;
+//            done = true;
+            thread.interrupt();
             close();
             return deviceList;
         }

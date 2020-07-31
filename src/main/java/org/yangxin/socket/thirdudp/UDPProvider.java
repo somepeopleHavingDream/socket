@@ -18,11 +18,14 @@ public class UDPProvider {
         // 生成一份唯一标识
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn);
-        new Thread(provider).start();
+        Thread thread = new Thread(provider);
+        thread.start();
+//        new Thread(provider).start();
 
         // 读取任意键盘信息后可以退出
         System.in.read();
-        provider.exit();
+        provider.exit(thread);
+//        provider.exit();
     }
 
     /**
@@ -32,13 +35,14 @@ public class UDPProvider {
     private static class Provider implements Runnable {
 
         private final String sn;
-        private boolean done = false;
+//        private boolean done = false;
         private DatagramSocket datagramSocket = null;
 
         private Provider(String sn) {
             this.sn = sn;
         }
 
+        @SuppressWarnings("DuplicatedCode")
         @Override
         public void run() {
             System.out.println("UDPProvider started...");
@@ -46,7 +50,8 @@ public class UDPProvider {
             try {
                 // 监听20000端口
                 datagramSocket = new DatagramSocket(20000);
-                while (!done) {
+                while (!Thread.interrupted()) {
+//                while (!done) {
                     // 构建接收实体
                     final byte[] buffer = new byte[512];
                     DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
@@ -78,8 +83,7 @@ public class UDPProvider {
                     }
 
                 }
-            } catch (IOException e) {
-//                e.printStackTrace();
+            } catch (IOException ignored) {
             } finally {
                 close();
             }
@@ -97,8 +101,9 @@ public class UDPProvider {
         /**
          * 提供结束
          */
-        void exit() {
-            done = true;
+        void exit(Thread thread) {
+//            done = true;
+            thread.interrupt();
             close();
         }
     }

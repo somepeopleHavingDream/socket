@@ -26,6 +26,7 @@ public class Client {
             // 发送接收数据
             todo(socket);
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("异常关闭");
         }
 
@@ -34,6 +35,7 @@ public class Client {
         System.out.println("客户端已退出。");
     }
 
+    @SuppressWarnings("DuplicatedCode")
     private static void todo(Socket client) throws IOException {
         // 构建键盘输入流
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));

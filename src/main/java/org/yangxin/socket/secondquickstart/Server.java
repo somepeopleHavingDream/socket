@@ -24,7 +24,7 @@ public class Server {
         while (true) {
             // 得到客户端
             Socket clientSocket = serverSocket.accept();
-            // 客户端构建异步线程
+            // 客户端构建异步线程（为每个客户端连接单开一个线程）
             ClientHandler clientHandler = new ClientHandler(clientSocket);
             // 启动线程
             new Thread(clientHandler).start();
@@ -36,15 +36,15 @@ public class Server {
      * 2020/07/04 22:30
      */
     private static class ClientHandler implements Runnable {
-//    private static class ClientHandler extends Thread {
 
         private final Socket socket;
-        private boolean flag = true;
+//        private boolean flag = true;
 
         ClientHandler(Socket socket) {
             this.socket = socket;
         }
 
+        @SuppressWarnings({"DuplicatedCode"})
         @Override
         public void run() {
             System.out.println("新客户端连接：" + socket.getInetAddress() + " P:" + socket.getPort());
@@ -55,19 +55,34 @@ public class Server {
                 // 得到输入流，用于接收数据
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                do {
+//                do {
+//                    // 从客户端拿到一条数据
+//                    String s = bufferedReader.readLine();
+//                    if ("bye".equalsIgnoreCase(s)) {
+//                        flag = false;
+//                        // 回送
+//                        printStream.println("bye");
+//                    } else {
+//                        // 打印到屏幕，并回送数据长度
+//                        System.out.println(s);
+//                        printStream.println("回送：" + s.length());
+//                    }
+//                } while (flag);
+
+                while (!Thread.interrupted()) {
                     // 从客户端拿到一条数据
                     String s = bufferedReader.readLine();
                     if ("bye".equalsIgnoreCase(s)) {
-                        flag = false;
+//                        flag = false;
                         // 回送
                         printStream.println("bye");
+                        Thread.currentThread().interrupt();
                     } else {
                         // 打印到屏幕，并回送数据长度
                         System.out.println(s);
                         printStream.println("回送：" + s.length());
                     }
-                } while (flag);
+                }
 
                 bufferedReader.close();
                 printStream.close();

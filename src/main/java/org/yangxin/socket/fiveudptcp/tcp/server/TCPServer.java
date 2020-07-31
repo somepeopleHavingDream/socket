@@ -20,10 +20,16 @@ public class TCPServer {
         this.port = port;
     }
 
+    /**
+     * 开启对客户端的监听线程
+     */
     public boolean start() {
         try {
             clientListener = new ClientListener(port);
-            new Thread(clientListener).start();
+            Thread thread = new Thread(clientListener);
+            thread.start();
+            clientListener.setThread(thread);
+//            new Thread(clientListener).start();
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -45,11 +51,20 @@ public class TCPServer {
     private static class ClientListener implements Runnable {
 
         private final ServerSocket serverSocket;
-        private boolean done = false;
+//        private boolean done = false;
+        private Thread thread;
 
         private ClientListener(int port) throws IOException {
             serverSocket = new ServerSocket(port);
             System.out.println("服务器信息：" + serverSocket.getInetAddress() + " P: " + serverSocket.getLocalPort());
+        }
+
+        public Thread getThread() {
+            return thread;
+        }
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
         }
 
         @Override
@@ -71,13 +86,15 @@ public class TCPServer {
                 ClientHandler clientHandler = new ClientHandler(client);
                 // 启动线程
                 new Thread(clientHandler).start();
-            } while (!done);
+            } while (!Thread.interrupted());
+//            } while (!done);
 
             System.out.println("服务器已关闭！");
         }
 
         public void exit() {
-            done = true;
+            thread.interrupt();
+//            done = true;
             try {
                 serverSocket.close();
             } catch (IOException e) {

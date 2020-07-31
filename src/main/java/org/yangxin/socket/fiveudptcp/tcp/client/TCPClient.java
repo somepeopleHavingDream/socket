@@ -29,6 +29,7 @@ public class TCPClient {
         todo(socket);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     private static void todo(Socket client) throws IOException {
         // 构建键盘输入流
         InputStream in = System.in;

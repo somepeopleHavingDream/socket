@@ -4,12 +4,14 @@ package org.yangxin.socket.fiveudptcp.tcp.clink.utils;
  * @author yangxin
  * 2020/07/07 21:21
  */
+@SuppressWarnings("unused")
 public class ByteUtils {
 
     public static boolean startsWith(byte[] source, byte[] match) {
         return startsWith(source, 0, match);
     }
 
+    @SuppressWarnings({"SameParameterValue", "DuplicatedCode"})
     private static boolean startsWith(byte[] source, int offset, byte[] match) {
         if (match.length > (source.length - offset)) {
             return false;

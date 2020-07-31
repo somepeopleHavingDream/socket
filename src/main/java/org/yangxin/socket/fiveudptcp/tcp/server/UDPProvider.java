@@ -22,7 +22,9 @@ public class UDPProvider {
 
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn, port);
-        new Thread(provider).start();
+        Thread thread = new Thread(provider);
+        provider.setThread(thread);
+//        new Thread(provider).start();
         PROVIDER_INSTANCE = provider;
     }
 
@@ -41,8 +43,9 @@ public class UDPProvider {
 
         private final byte[] sn;
         private final Integer port;
-        private boolean done = false;
+//        private boolean done = false;
         private DatagramSocket datagramSocket = null;
+        private Thread thread;
 
         /**
          * 存储消息的Buffer
@@ -52,6 +55,14 @@ public class UDPProvider {
         private Provider(String sn, Integer port) {
             this.sn = sn.getBytes();
             this.port = port;
+        }
+
+        public Thread getThread() {
+            return thread;
+        }
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
         }
 
         @SuppressWarnings("DuplicatedCode")
@@ -65,7 +76,8 @@ public class UDPProvider {
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
 
-                while (!done) {
+                while (!Thread.interrupted()) {
+//                while (!done) {
                     // 接收
                     datagramSocket.receive(receivePack);
 
@@ -140,7 +152,8 @@ public class UDPProvider {
          * 提供结束
          */
         public void exit() {
-            done = true;
+//            done = true;
+            thread.interrupt();
             close();
         }
     }

@@ -86,7 +86,10 @@ public class UDPSearcher {
 
         CountDownLatch startLatch = new CountDownLatch(1);
         Listener listener = new Listener(LISTEN_PORT, startLatch, receiveLatch);
-        new Thread(listener).start();
+        Thread thread = new Thread(listener);
+        thread.start();
+        listener.setThread(thread);
+//        new Thread(listener).start();
         startLatch.await();
         return listener;
     }
@@ -103,13 +106,22 @@ public class UDPSearcher {
         private final List<ServerInfo> serverInfoList = new ArrayList<>();
         private final byte[] buffer = new byte[128];
         private final int minLength = UDPConstants.HEADER.length + 2 + 4;
-        private boolean done = false;
+//        private boolean done = false;
         private DatagramSocket datagramSocket = null;
+        private Thread thread;
 
         private Listener(int listenPort, CountDownLatch startLatch, CountDownLatch receiveLatch) {
             this.listenPort = listenPort;
             this.startLatch = startLatch;
             this.receiveLatch = receiveLatch;
+        }
+
+        public Thread getThread() {
+            return thread;
+        }
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
         }
 
         @SuppressWarnings("DuplicatedCode")
@@ -124,7 +136,8 @@ public class UDPSearcher {
                 // 构建接收实体
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
 
-                while (!done) {
+                while (!Thread.interrupted()) {
+//                while (!done) {
                     // 接收
                     datagramSocket.receive(receivePack);
 
@@ -176,7 +189,8 @@ public class UDPSearcher {
         }
 
         public List<ServerInfo> getServerAndClose() {
-            done = true;
+            thread.interrupt();
+            //            done = true;
             close();
             return serverInfoList;
         }

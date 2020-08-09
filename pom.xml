@@ -12,7 +12,7 @@
     <module>lib-clink</module>
     <module>sample-foo</module>
     <module>sample-client</module>
-      <module>sample-server</module>
+    <module>sample-server</module>
   </modules>
 
   <name>socket</name>

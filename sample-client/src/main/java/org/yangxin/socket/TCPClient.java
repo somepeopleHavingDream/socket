@@ -50,7 +50,6 @@ public class TCPClient {
         try {
             ReadHandler readHandler = new ReadHandler(socket.getInputStream());
             new Thread(readHandler).start();
-//            readHandler.start();
             return new TCPClient(socket, readHandler);
         } catch (Exception e) {
             System.out.println("连接异常");

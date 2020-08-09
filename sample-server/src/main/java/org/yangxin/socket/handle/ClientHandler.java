@@ -47,7 +47,6 @@ public class ClientHandler {
 
     public void readToPrint() {
         new Thread(readHandler).start();
-//        readHandler.start();
     }
 
     private void exitBySelf() {
@@ -72,7 +71,7 @@ public class ClientHandler {
      * 2020/08/03 16:53
      */
     class ClientReadHandler implements Runnable {
-//    class ClientReadHandler extends Thread {
+
         private boolean done = false;
         private final InputStream inputStream;
 
@@ -82,7 +81,6 @@ public class ClientHandler {
 
         @Override
         public void run() {
-//            super.run();
             try {
                 // 得到输入流，用于接收数据
                 BufferedReader socketInput = new BufferedReader(new InputStreamReader(inputStream));

@@ -49,10 +49,10 @@ public class UDPSearcher {
 
     private static Listener listen(CountDownLatch receiveLatch) throws InterruptedException {
         System.out.println("UDPSearcher start listen.");
+
         CountDownLatch startDownLatch = new CountDownLatch(1);
         Listener listener = new Listener(LISTEN_PORT, startDownLatch, receiveLatch);
         new Thread(listener).start();
-//        listener.start();
         startDownLatch.await();
         return listener;
     }
@@ -92,7 +92,6 @@ public class UDPSearcher {
      * 2020/08/03 16:44
      */
     private static class Listener implements Runnable {
-//    private static class Listener extends Thread {
 
         private final int listenPort;
         private final CountDownLatch startDownLatch;
@@ -112,8 +111,6 @@ public class UDPSearcher {
 
         @Override
         public void run() {
-//            super.run();
-
             // 通知已启动
             startDownLatch.countDown();
             try {

@@ -32,7 +32,6 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
             ClientListener listener = new ClientListener(port);
             mListener = listener;
             new Thread(listener).start();
-//            listener.start();
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -92,7 +91,6 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
      * 2020/08/03 16:57
      */
     private class ClientListener implements Runnable {
-//    private class ClientListener extends Thread {
 
         private final ServerSocket server;
         private boolean done = false;
@@ -104,9 +102,8 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
         @Override
         public void run() {
-//            super.run();
-
             System.out.println("服务器准备就绪～");
+
             // 等待客户端连接
             do {
                 // 得到客户端

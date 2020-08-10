@@ -81,7 +81,6 @@ public class ClientHandler {
      */
     class ClientReadHandler implements Runnable {
 
-        //        private boolean done = false;
         private final InputStream inputStream;
         private Thread thread;
 
@@ -111,10 +110,8 @@ public class ClientHandler {
                     // 通知到TCPServer
                     clientHandlerCallback.onNewMessageArrived(ClientHandler.this, str);
                 } while (!Thread.interrupted());
-//                } while (!done);
             } catch (Exception e) {
                 if (!Thread.interrupted()) {
-//                if (!done) {
                     System.out.println("连接异常断开");
                     ClientHandler.this.exitBySelf();
                 }

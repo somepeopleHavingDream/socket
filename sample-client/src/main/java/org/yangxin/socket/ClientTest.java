@@ -16,6 +16,7 @@ public class ClientTest {
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "BusyWait"})
     public static void main(String[] args) throws IOException {
+        // 获得服务端tcp端口信息
         ServerInfo info = UDPSearcher.searchServer(10000);
         System.out.println("Server:" + info);
         if (info == null) {
@@ -25,7 +26,7 @@ public class ClientTest {
         // 当前连接数量
         int size = 0;
         final List<TCPClient> tcpClients = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1000; i++) {
             try {
                 TCPClient tcpClient = TCPClient.startWith(info);
                 if (tcpClient == null) {
@@ -34,9 +35,7 @@ public class ClientTest {
                 }
 
                 tcpClients.add(tcpClient);
-
                 System.out.println("连接成功：" + (++size));
-
             } catch (IOException e) {
                 System.out.println("连接异常");
             }
@@ -47,7 +46,6 @@ public class ClientTest {
                 e.printStackTrace();
             }
         }
-
 
         System.in.read();
 

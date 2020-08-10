@@ -48,8 +48,11 @@ public class TCPClient {
         System.out.println("服务器信息：" + socket.getInetAddress() + " P:" + socket.getPort());
 
         try {
+            // 客户端开启对服务端的读事件处理线程
             ReadHandler readHandler = new ReadHandler(socket.getInputStream());
-            new Thread(readHandler).start();
+            Thread thread = new Thread(readHandler);
+            readHandler.setThread(thread);
+//            new Thread(readHandler).start();
             return new TCPClient(socket, readHandler);
         } catch (Exception e) {
             System.out.println("连接异常");
@@ -60,22 +63,27 @@ public class TCPClient {
     }
 
     /**
+     * 客户端对服务端的读事件处理程序
+     *
      * @author yangxin
      * 2020/08/03 16:47
      */
     static class ReadHandler implements Runnable {
-//    static class ReadHandler extends Thread {
 
-        private boolean done = false;
+//        private boolean done = false;
         private final InputStream inputStream;
+        private Thread thread;
 
         ReadHandler(InputStream inputStream) {
             this.inputStream = inputStream;
         }
 
+        public void setThread(Thread thread) {
+            this.thread = thread;
+        }
+
         @Override
         public void run() {
-//            super.run();
             try {
                 // 得到输入流，用于接收数据
                 BufferedReader socketInput = new BufferedReader(new InputStreamReader(inputStream));
@@ -94,9 +102,11 @@ public class TCPClient {
                     }
                     // 打印到屏幕
                     System.out.println(str);
-                } while (!done);
+                } while (!Thread.interrupted());
+//                } while (!done);
             } catch (Exception e) {
-                if (!done) {
+                if (!Thread.interrupted()) {
+//                if (!done) {
                     System.out.println("连接异常断开：" + e.getMessage());
                 }
             } finally {
@@ -106,7 +116,8 @@ public class TCPClient {
         }
 
         void exit() {
-            done = true;
+            thread.interrupt();
+//            done = true;
             CloseUtils.close(inputStream);
         }
     }

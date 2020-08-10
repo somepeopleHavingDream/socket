@@ -29,7 +29,9 @@ public class UDPSearcher {
         CountDownLatch receiveLatch = new CountDownLatch(1);
         Listener listener = null;
         try {
+            // 开启监听，监听服务端返回的ucp信息，其中包含了服务端开放的tcp端口
             listener = listen(receiveLatch);
+            // 广播
             sendBroadcast();
             receiveLatch.await(timeout, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
@@ -47,12 +49,18 @@ public class UDPSearcher {
         return null;
     }
 
+    /**
+     * 监听服务端返回的tcp端口信息
+     */
     private static Listener listen(CountDownLatch receiveLatch) throws InterruptedException {
         System.out.println("UDPSearcher start listen.");
 
+        // 开启监听线程
         CountDownLatch startDownLatch = new CountDownLatch(1);
         Listener listener = new Listener(LISTEN_PORT, startDownLatch, receiveLatch);
-        new Thread(listener).start();
+        Thread thread = new Thread(listener);
+        listener.setThread(thread);
+        thread.start();
         startDownLatch.await();
         return listener;
     }
@@ -99,14 +107,18 @@ public class UDPSearcher {
         private final List<ServerInfo> serverInfoList = new ArrayList<>();
         private final byte[] buffer = new byte[128];
         private final int minLen = UDPConstants.HEADER.length + 2 + 4;
-        private boolean done = false;
         private DatagramSocket ds = null;
+        private Thread thread;
 
         private Listener(int listenPort, CountDownLatch startDownLatch, CountDownLatch receiveDownLatch) {
             super();
             this.listenPort = listenPort;
             this.startDownLatch = startDownLatch;
             this.receiveDownLatch = receiveDownLatch;
+        }
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
         }
 
         @Override
@@ -119,7 +131,7 @@ public class UDPSearcher {
                 // 构建接收实体
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
 
-                while (!done) {
+                while (!Thread.interrupted()) {
                     // 接收
                     ds.receive(receivePack);
 
@@ -169,7 +181,7 @@ public class UDPSearcher {
         }
 
         List<ServerInfo> getServerAndClose() {
-            done = true;
+            thread.interrupt();
             close();
             return serverInfoList;
         }

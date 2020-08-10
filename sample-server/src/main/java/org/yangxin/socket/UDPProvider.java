@@ -16,15 +16,25 @@ public class UDPProvider {
 
     private static Provider PROVIDER_INSTANCE;
 
+    /**
+     * 服务端使用udp对外提供tcp服务端口信息
+
+     * @param port 端口
+     */
     static void start(int port) {
         stop();
+
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn, port);
-        new Thread(provider).start();
-//        provider.start();
+        Thread thread = new Thread(provider);
+        provider.setThread(thread);
+        thread.start();
         PROVIDER_INSTANCE = provider;
     }
 
+    /**
+     * 停止使用udp对外提供tcp服务端口信息
+     */
     static void stop() {
         if (PROVIDER_INSTANCE != null) {
             PROVIDER_INSTANCE.exit();
@@ -33,17 +43,21 @@ public class UDPProvider {
     }
 
     /**
+     * 向请求的客户端提供服务端开放的tcp端口信息
+     *
      * @author yangxin
      * 2020/08/03 17:04
      */
     private static class Provider implements Runnable {
-//    private static class Provider extends Thread {
 
         private final byte[] sn;
         private final int port;
-        private boolean done = false;
         private DatagramSocket ds = null;
-        // 存储消息的Buffer
+        private Thread thread;
+
+        /**
+         * 存储消息的Buffer
+         */
         final byte[] buffer = new byte[128];
 
         Provider(String sn, int port) {
@@ -52,10 +66,12 @@ public class UDPProvider {
             this.port = port;
         }
 
+        public void setThread(Thread thread) {
+            this.thread = thread;
+        }
+
         @Override
         public void run() {
-//            super.run();
-
             System.out.println("UDPProvider Started.");
 
             try {
@@ -64,8 +80,7 @@ public class UDPProvider {
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
 
-                while (!done) {
-
+                while (!Thread.interrupted()) {
                     // 接收
                     ds.receive(receivePack);
 
@@ -134,7 +149,8 @@ public class UDPProvider {
          * 提供结束
          */
         void exit() {
-            done = true;
+            thread.interrupt();
+//            done = true;
             close();
         }
     }

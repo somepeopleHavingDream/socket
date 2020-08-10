@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * 在服务端的对客户端处理的程序
+ *
  * @author yangxin
  * 2020/08/03 16:51
  */
@@ -45,8 +47,13 @@ public class ClientHandler {
         writeHandler.send(str);
     }
 
+    /**
+     * 读取数据并打印
+     */
     public void readToPrint() {
-        new Thread(readHandler).start();
+        Thread thread = new Thread(readHandler);
+        readHandler.setThread(thread);
+        thread.start();
     }
 
     private void exitBySelf() {
@@ -67,16 +74,23 @@ public class ClientHandler {
     }
 
     /**
+     * 对客户端的读事件的处理程序
+     *
      * @author yangxin
      * 2020/08/03 16:53
      */
     class ClientReadHandler implements Runnable {
 
-        private boolean done = false;
+        //        private boolean done = false;
         private final InputStream inputStream;
+        private Thread thread;
 
         ClientReadHandler(InputStream inputStream) {
             this.inputStream = inputStream;
+        }
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
         }
 
         @Override
@@ -96,9 +110,11 @@ public class ClientHandler {
                     }
                     // 通知到TCPServer
                     clientHandlerCallback.onNewMessageArrived(ClientHandler.this, str);
-                } while (!done);
+                } while (!Thread.interrupted());
+//                } while (!done);
             } catch (Exception e) {
-                if (!done) {
+                if (!Thread.interrupted()) {
+//                if (!done) {
                     System.out.println("连接异常断开");
                     ClientHandler.this.exitBySelf();
                 }
@@ -109,12 +125,15 @@ public class ClientHandler {
         }
 
         void exit() {
-            done = true;
+            thread.interrupt();
+//            done = true;
             CloseUtils.close(inputStream);
         }
     }
 
     /**
+     * 服务端对客户端的写事件处理程序
+     *
      * @author yangxin
      * 2020/08/03 16:54
      */
@@ -132,17 +151,18 @@ public class ClientHandler {
         void exit() {
             done = true;
             CloseUtils.close(printStream);
-            executorService.shutdownNow();
+            executorService.shutdown();
         }
 
         void send(String str) {
-            if(done){
+            if (done) {
                 return;
             }
             executorService.execute(new WriteRunnable(str));
         }
 
         class WriteRunnable implements Runnable {
+
             private final String msg;
 
             WriteRunnable(String msg) {

@@ -8,12 +8,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
+ * 客户端入口
+ *
  * @author yangxin
  * 2020/08/03 16:41
  */
 public class Client {
 
     public static void main(String[] args) {
+        // 客户端用udp广播，获得服务器返回的tcp端口信息
         ServerInfo info = UDPSearcher.searchServer(10000);
         System.out.println("Server:" + info);
 
@@ -26,6 +29,7 @@ public class Client {
                     return;
                 }
 
+                // 循环写，会阻塞
                 write(tcpClient);
             } catch (IOException e) {
                 e.printStackTrace();

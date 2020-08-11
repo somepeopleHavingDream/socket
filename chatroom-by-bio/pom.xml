@@ -10,6 +10,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>chatroom-by-socket</artifactId>
+    <packaging>pom</packaging>
 
-
+    <modules>
+        <module>lib-clink</module>
+        <module>sample-foo</module>
+        <module>sample-client</module>
+        <module>sample-server</module>
+    </modules>
 </project>

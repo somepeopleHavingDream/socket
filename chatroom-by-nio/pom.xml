@@ -8,8 +8,13 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>org.yangxin.socket.chatroom.bio</groupId>
-    <artifactId>chatroom-by-bio</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>nio-lib-clink</module>
+        <module>nio-sample-foo</module>
+        <module>nio-sample-server</module>
+    </modules>
+
+    <groupId>org.yangxin.socket.chatroom.nio</groupId>
+    <artifactId>chatroom-by-nio</artifactId>
 </project>

@@ -9,7 +9,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>org.yangxin.socket.udptcp</groupId>
     <artifactId>udp-tcp</artifactId>
-
-
 </project>

@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.yangxin.socket.chatroom.bio</groupId>
-    <artifactId>chatroom-by-bio</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>bio-sample-foo</artifactId>
+
+
 </project>

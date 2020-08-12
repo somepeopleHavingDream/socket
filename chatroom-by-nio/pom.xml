@@ -13,6 +13,7 @@
         <module>nio-lib-clink</module>
         <module>nio-sample-foo</module>
         <module>nio-sample-server</module>
+        <module>nio-sample-client</module>
     </modules>
 
     <groupId>org.yangxin.socket.chatroom.nio</groupId>

@@ -29,18 +29,23 @@ public class ClientHandler {
         // 设置非阻塞模式
         socketChannel.configureBlocking(false);
 
+        // 读选择器
         Selector readSelector = Selector.open();
         socketChannel.register(readSelector, SelectionKey.OP_READ);
         this.readHandler = new ClientReadHandler(readSelector);
 
+        // 写选择器
         Selector writeSelector = Selector.open();
         socketChannel.register(writeSelector, SelectionKey.OP_WRITE);
         this.writeHandler = new ClientWriteHandler(writeSelector);
 
-
         this.clientHandlerCallback = clientHandlerCallback;
         this.clientInfo = socketChannel.getRemoteAddress().toString();
         System.out.println("新客户端连接：" + clientInfo);
+    }
+
+    public String getClientInfo() {
+        return clientInfo;
     }
 
     public void exit() {
@@ -48,6 +53,19 @@ public class ClientHandler {
         writeHandler.exit();
         CloseUtils.close(socketChannel);
         System.out.println("客户端已退出：" + clientInfo);
+    }
+
+    /**
+     * 写
+     */
+    public void send(String str) {
+        writeHandler.send(str);
+    }
+
+    public void readToPrint() {
+        Thread thread = new Thread(readHandler);
+        readHandler.setThread(thread);
+        thread.start();
     }
 
     private void exitBySelf() {
@@ -63,24 +81,32 @@ public class ClientHandler {
         void onNewMessageArrived(ClientHandler handler, String msg);
     }
 
-    class ClientReadHandler extends Thread {
-        private boolean done = false;
+    /**
+     * @author yangxin
+     * 2020/08/12 14:47
+     */
+    class ClientReadHandler implements Runnable {
+
         private final Selector selector;
         private final ByteBuffer byteBuffer;
+        private Thread thread;
 
         ClientReadHandler(Selector selector) {
             this.selector = selector;
             this.byteBuffer = ByteBuffer.allocate(256);
         }
 
+        public void setThread(Thread thread) {
+            this.thread = thread;
+        }
+
         @Override
         public void run() {
-            super.run();
             try {
                 do {
                     // 客户端拿到一条数据
                     if (selector.select() == 0) {
-                        if (done) {
+                        if (Thread.interrupted()) {
                             break;
                         }
                         continue;
@@ -88,7 +114,7 @@ public class ClientHandler {
 
                     Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                     while (iterator.hasNext()) {
-                        if (done) {
+                        if (Thread.interrupted()) {
                             break;
                         }
 
@@ -114,9 +140,9 @@ public class ClientHandler {
                             }
                         }
                     }
-                } while (!done);
+                } while (!Thread.interrupted());
             } catch (Exception e) {
-                if (!done) {
+                if (!Thread.interrupted()) {
                     System.out.println("连接异常断开");
                     ClientHandler.this.exitBySelf();
                 }
@@ -127,13 +153,21 @@ public class ClientHandler {
         }
 
         void exit() {
-            done = true;
+            thread.interrupt();
+//            done = true;
             selector.wakeup();
             CloseUtils.close(selector);
         }
     }
 
+    /**
+     * 对客户端的写事件处理器
+     *
+     * @author yangxin
+     * 2020/08/12 14:51
+     */
     class ClientWriteHandler {
+
         private boolean done = false;
         private final Selector selector;
         private final ByteBuffer byteBuffer;
@@ -158,7 +192,14 @@ public class ClientHandler {
             executorService.execute(new WriteRunnable(str));
         }
 
+        /**
+         * 写动作
+         *
+         * @author yangxin
+         * 2020/08/12 14:55
+         */
         class WriteRunnable implements Runnable {
+
             private final String msg;
 
             WriteRunnable(String msg) {

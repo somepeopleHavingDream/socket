@@ -12,6 +12,7 @@
         <module>udp-tcp</module>
         <module>chatroom-by-bio</module>
         <module>chatroom-by-nio</module>
+        <module>chatroom-by-nio-thread</module>
     </modules>
 
     <name>socket</name>

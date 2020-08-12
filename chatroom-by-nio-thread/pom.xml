@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>socket</artifactId>
+        <groupId>org.yangxin.socket</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.yangxin.socket.nio.thread</groupId>
+    <artifactId>chatroom-by-nio-thread</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>nio-thread-lib-clink</module>
+        <module>nio-thread-sample-server</module>
+        <module>nio-thread-sample-client</module>
+    </modules>
+
+</project>

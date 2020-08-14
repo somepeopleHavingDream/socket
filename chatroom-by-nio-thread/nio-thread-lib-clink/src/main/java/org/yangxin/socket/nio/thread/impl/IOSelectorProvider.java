@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * IO复用选择器提供者
+ *
  * @author yangxin
  * 2020/08/12 16:27
  */

@@ -45,6 +45,8 @@ public class IOContext {
     }
 
     /**
+     * 启动引导类
+     *
      * @author yangxin
      * 2020/08/12 16:22
      */
@@ -60,6 +62,11 @@ public class IOContext {
             return this;
         }
 
+        /**
+         * 设置并返回IO环境变量
+         *
+         * @return 自定义全局io环境变量
+         */
         @SuppressWarnings("UnusedReturnValue")
         public IOContext start() {
             INSTANCE = new IOContext(ioProvider);
@@ -74,5 +81,7 @@ public class IOContext {
         System.out.println(Objects.equals(startedBoot1, startedBoot2));
         // false
         System.out.println(startedBoot1 == startedBoot2);
+        // false
+        System.out.println(startedBoot1.equals(startedBoot2));
     }
 }

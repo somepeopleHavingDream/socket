@@ -34,6 +34,9 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
         this.forwardingThreadPoolExecutor = Executors.newSingleThreadExecutor();
     }
 
+    /**
+     * 服务端开启监听
+     */
     public boolean start() {
         try {
             selector = Selector.open();
@@ -47,12 +50,12 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
             this.server = server;
 
-
             System.out.println("服务器信息：" + server.getLocalAddress().toString());
 
             // 启动客户端监听
             ClientListener listener = this.listener = new ClientListener();
-            listener.start();
+            Thread thread = new Thread(listener);
+            listener.setThread(thread);
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -60,6 +63,9 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
         return true;
     }
 
+    /**
+     * 停止tcp服务端
+     */
     public void stop() {
         if (listener != null) {
             listener.exit();
@@ -80,6 +86,9 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
         forwardingThreadPoolExecutor.shutdownNow();
     }
 
+    /**
+     * 广播
+     */
     public synchronized void broadcast(String str) {
         for (ClientHandler clientHandler : clientHandlerList) {
             clientHandler.send(str);
@@ -109,24 +118,30 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
     }
 
     /**
+     * 客户端监听
+     *
      * @author yangxin
      * 2020/08/12 16:51
      */
-    private class ClientListener extends Thread {
+    private class ClientListener implements Runnable {
 
-        private boolean done = false;
+        private Thread thread;
+
+        public void setThread(Thread thread) {
+            this.thread = thread;
+        }
 
         @Override
         public void run() {
-            super.run();
             Selector selector = TCPServer.this.selector;
             System.out.println("服务器准备就绪～");
+
             // 等待客户端连接
             do {
                 // 得到客户端
                 try {
                     if (selector.select() == 0) {
-                        if (done) {
+                        if (Thread.interrupted()) {
                             break;
                         }
                         continue;
@@ -134,7 +149,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
                     Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                     while (iterator.hasNext()) {
-                        if (done) {
+                        if (Thread.interrupted()) {
                             break;
                         }
 
@@ -164,14 +179,16 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-            } while (!done);
+            } while (!Thread.interrupted());
 
             System.out.println("服务器已关闭！");
         }
 
+        /**
+         * 服务端对客户端的监听退出
+         */
         void exit() {
-            done = true;
+            thread.interrupt();
             // 唤醒当前的阻塞
             selector.wakeup();
         }

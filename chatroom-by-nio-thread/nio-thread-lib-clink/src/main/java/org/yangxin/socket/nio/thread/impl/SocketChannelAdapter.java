@@ -11,36 +11,73 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * 客户端通道适配器
+ *
  * @author yangxin
  * 2020/08/12 16:03
  */
-public class SocketChannelAdapter implements Sender, Receiver, Cloneable{
+public class SocketChannelAdapter implements Sender, Receiver, Cloneable {
 
+    /**
+     * 是否关闭
+     */
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
+
+    /**
+     * 客户端通道
+     */
     private final SocketChannel channel;
+
+    /**
+     * io提供者
+     */
     private final IOProvider ioProvider;
+
+    /**
+     * 通道状态改变时监听器
+     */
     private final OnChannelStatusChangedListener listener;
 
-    private IOArgs.IOArgsEventListener receiveIoEventListener;
-    private IOArgs.IOArgsEventListener sendIoEventListener;
+    /**
+     * 接收IO事件监听器
+     */
+    private IOArgs.IOArgsEventListener receiveIOEventListener;
+    /**
+     * 发送IO事件监听器
+     */
+    private IOArgs.IOArgsEventListener sendIOEventListener;
 
-    public SocketChannelAdapter(SocketChannel channel, IOProvider ioProvider,
+    public SocketChannelAdapter(SocketChannel channel,
+                                IOProvider ioProvider,
                                 OnChannelStatusChangedListener listener) throws IOException {
         this.channel = channel;
         this.ioProvider = ioProvider;
         this.listener = listener;
 
+        // 配置通道非阻塞
         channel.configureBlocking(false);
     }
 
+    /**
+     * 异步接收
+     * 这里其实只做了两件事：
+     * 1. 设置接收者的IO事件监听器
+     * 2. 向io提供者，为该客户端通道注册输入回调
+     *
+     * @param listener 输入输出参数事件监听器
+     * @return 是否异步接收消息成功
+     */
     @Override
     public boolean receiveAsync(IOArgs.IOArgsEventListener listener) throws IOException {
+        // 如果通道关闭，抛出io异常
         if (isClosed.get()) {
             throw new IOException("Current channel is closed!");
         }
 
-        receiveIoEventListener = listener;
+        // 设置接收IO事件监听器
+        receiveIOEventListener = listener;
 
+        // 注册输入回调方法
         return ioProvider.registerInput(channel, inputCallback);
     }
 
@@ -50,7 +87,7 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable{
             throw new IOException("Current channel is closed!");
         }
 
-        sendIoEventListener = listener;
+        sendIOEventListener = listener;
         // 当前发送的数据附加到回调中
         outputCallback.setAttach(args);
         return ioProvider.registerOutput(channel, outputCallback);
@@ -69,6 +106,9 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable{
         }
     }
 
+    /**
+     * 处理输入事件的回调方法
+     */
     private final IOProvider.HandleInputCallback inputCallback = new IOProvider.HandleInputCallback() {
 
         @Override
@@ -78,7 +118,7 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable{
             }
 
             IOArgs args = new IOArgs();
-            IOArgs.IOArgsEventListener listener = SocketChannelAdapter.this.receiveIoEventListener;
+            IOArgs.IOArgsEventListener listener = SocketChannelAdapter.this.receiveIOEventListener;
 
             if (listener != null) {
                 listener.onStarted(args);
@@ -106,11 +146,13 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable{
                 return;
             }
 
-            sendIoEventListener.onCompleted(null);
+            sendIOEventListener.onCompleted(null);
         }
     };
 
     /**
+     * 通道状态改变监听
+     *
      * @author yangxin
      * 2020/08/12 16:14
      */

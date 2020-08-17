@@ -25,35 +25,63 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class IOSelectorProvider implements IOProvider {
 
+    /**
+     * 是否关闭
+     */
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
-    // 是否处于某个过程
+    /**
+     * 是否处于某个过程
+     */
     private final AtomicBoolean inRegInput = new AtomicBoolean(false);
     private final AtomicBoolean inRegOutput = new AtomicBoolean(false);
 
+    /**
+     * 读选择器
+     */
     private final Selector readSelector;
+    /**
+     * 写选择器
+     */
     private final Selector writeSelector;
 
+    /**
+     * 输入回调map
+     */
     private final HashMap<SelectionKey, Runnable> inputCallbackMap = new HashMap<>();
+    /**
+     * 输出回调map
+     */
     private final HashMap<SelectionKey, Runnable> outputCallbackMap = new HashMap<>();
 
+    /**
+     * 读事件处理线程池
+     */
     private final ExecutorService inputHandlePool;
+    /**
+     * 写事件处理线程池
+     */
     private final ExecutorService outputHandlePool;
 
     public IOSelectorProvider() throws IOException {
         readSelector = Selector.open();
         writeSelector = Selector.open();
 
-        inputHandlePool = Executors.newFixedThreadPool(4,
-                new IOProviderThreadFactory("IoProvider-Input-Thread-"));
-        outputHandlePool = Executors.newFixedThreadPool(4,
-                new IOProviderThreadFactory("IoProvider-Output-Thread-"));
+//        inputHandlePool = Executors.newFixedThreadPool(4,
+//                new IOProviderThreadFactory("IoProvider-Input-Thread-"));
+//        outputHandlePool = Executors.newFixedThreadPool(4,
+//                new IOProviderThreadFactory("IoProvider-Output-Thread-"));
+        inputHandlePool = Executors.newFixedThreadPool(4);
+        outputHandlePool = Executors.newFixedThreadPool(4);
 
         // 开始输出输入的监听
         startRead();
         startWrite();
     }
 
+    /**
+     * 开启对输入事件的监听
+     */
     private void startRead() {
         Thread thread = new Thread("Clink IoSelectorProvider ReadSelector Thread") {
 
@@ -66,6 +94,7 @@ public class IOSelectorProvider implements IOProvider {
                             continue;
                         }
 
+                        // 处理读事件
                         Set<SelectionKey> selectionKeys = readSelector.selectedKeys();
                         for (SelectionKey selectionKey : selectionKeys) {
                             if (selectionKey.isValid()) {
@@ -84,6 +113,9 @@ public class IOSelectorProvider implements IOProvider {
         thread.start();
     }
 
+    /**
+     * 开启对输出事件的监听
+     */
     private void startWrite() {
         Thread thread = new Thread("Clink IoSelectorProvider WriteSelector Thread") {
 
@@ -96,6 +128,7 @@ public class IOSelectorProvider implements IOProvider {
                             continue;
                         }
 
+                        // 处理事件
                         Set<SelectionKey> selectionKeys = writeSelector.selectedKeys();
                         for (SelectionKey selectionKey : selectionKeys) {
                             if (selectionKey.isValid()) {
@@ -151,6 +184,9 @@ public class IOSelectorProvider implements IOProvider {
         }
     }
 
+    /**
+     * 等待选择
+     */
     private static void waitSelection(final AtomicBoolean locker) {
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (locker) {
@@ -222,18 +258,22 @@ public class IOSelectorProvider implements IOProvider {
         }
     }
 
+    /**
+     * 处理读事件
+     */
     private static void handleSelection(SelectionKey key, int keyOps,
                                         HashMap<SelectionKey, Runnable> map,
                                         ExecutorService pool) {
         // 重点
         // 取消继续对keyOps的监听
-        key.interestOps(key.readyOps() & ~keyOps);
+        // 对于键来说感兴趣的操作
+        key.interestOps(key.interestOps() & ~keyOps);
+//        key.interestOps(key.readyOps() & ~keyOps);
 
         Runnable runnable = null;
         try {
             runnable = map.get(key);
         } catch (Exception ignored) {
-
         }
 
         if (runnable != null && !pool.isShutdown()) {

@@ -21,6 +21,7 @@ public class Server {
                 .ioProvider(new IOSelectorProvider())
                 .start();
 
+        // 服务端开启tcp服务
         TCPServer tcpServer = new TCPServer(TCPConstants.PORT_SERVER);
         boolean isSucceed = tcpServer.start();
         if (!isSucceed) {
@@ -28,6 +29,7 @@ public class Server {
             return;
         }
 
+        // udp提供tcp服务端口信息
         UDPProvider.start(TCPConstants.PORT_SERVER);
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));

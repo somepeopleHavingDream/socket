@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 /**
+ * UDP提供tcp服务端口信息
+ *
  * @author yangxin
  * 2020/08/12 16:52
  */
@@ -16,11 +18,20 @@ public class UDPProvider {
 
     private static Provider PROVIDER_INSTANCE;
 
+    /**
+     * 开启udp服务
+     *
+     * @param port 需要响应给客户端的端口
+     */
     static void start(int port) {
         stop();
+
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn, port);
-        provider.start();
+        Thread thread = new Thread(provider);
+        provider.setThread(thread);
+        thread.start();
+
         PROVIDER_INSTANCE = provider;
     }
 
@@ -35,14 +46,17 @@ public class UDPProvider {
      * @author yangxin
      * 2020/08/12 16:53
      */
-    private static class Provider extends Thread {
+    private static class Provider implements Runnable {
 
         private final byte[] sn;
         private final int port;
-        private boolean done = false;
         private DatagramSocket ds = null;
-        // 存储消息的Buffer
+
+        /**
+         * 存储消息的Buffer
+         */
         final byte[] buffer = new byte[128];
+        private Thread thread;
 
         Provider(String sn, int port) {
             super();
@@ -50,10 +64,12 @@ public class UDPProvider {
             this.port = port;
         }
 
+        public void setThread(Thread thread) {
+            this.thread = thread;
+        }
+
         @Override
         public void run() {
-            super.run();
-
             System.out.println("UDPProvider Started.");
 
             try {
@@ -62,8 +78,7 @@ public class UDPProvider {
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
 
-                while (!done) {
-
+                while (!Thread.interrupted()) {
                     // 接收
                     ds.receive(receivePack);
 
@@ -132,7 +147,8 @@ public class UDPProvider {
          * 提供结束
          */
         void exit() {
-            done = true;
+            thread.interrupt();
+//            done = true;
             close();
         }
     }

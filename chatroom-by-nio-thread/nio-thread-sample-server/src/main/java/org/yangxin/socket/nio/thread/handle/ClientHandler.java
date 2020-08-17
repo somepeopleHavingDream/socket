@@ -12,21 +12,43 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * 服务端对客户端的处理
+ *
  * @author yangxin
  * 2020/08/12 16:44
  */
 public class ClientHandler {
 
+    /**
+     * 连接器
+     */
     private final Connector connector;
+
+    /**
+     * 套接字通道
+     */
     private final SocketChannel socketChannel;
+
+    /**
+     * 读处理
+     */
     private final ClientWriteHandler writeHandler;
+
+    /**
+     * 客户端处理回调
+     */
     private final ClientHandlerCallback clientHandlerCallback;
+
+    /**
+     * 客户端信息
+     */
     private final String clientInfo;
 
     public ClientHandler(SocketChannel socketChannel, ClientHandlerCallback clientHandlerCallback) throws IOException {
         this.socketChannel = socketChannel;
 
         connector = new Connector() {
+
             @Override
             public void onChannelClosed(SocketChannel channel) {
                 super.onChannelClosed(channel);
@@ -44,9 +66,9 @@ public class ClientHandler {
         Selector writeSelector = Selector.open();
         socketChannel.register(writeSelector, SelectionKey.OP_WRITE);
         this.writeHandler = new ClientWriteHandler(writeSelector);
-
         this.clientHandlerCallback = clientHandlerCallback;
         this.clientInfo = socketChannel.getRemoteAddress().toString();
+
         System.out.println("新客户端连接：" + clientInfo);
     }
 
@@ -84,6 +106,8 @@ public class ClientHandler {
     }
 
     /**
+     * 服务端对客户端的写处理
+     *
      * @author yangxin
      * 2020/08/12 16:46
      */
@@ -114,6 +138,8 @@ public class ClientHandler {
         }
 
         /**
+         * 可写
+         *
          * @author yangxin
          * 2020/08/12 16:45
          */

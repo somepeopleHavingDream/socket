@@ -81,8 +81,19 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable {
         return ioProvider.registerInput(channel, inputCallback);
     }
 
+    /**
+     * 异步发送
+     * 这里其实也只做了两件事：
+     * 1. 设置发送者的IO事件监听
+     * 2. 向io提供者，为该客户端通道注册输出回调
+     *
+     * @param args IO参数封装对象
+     * @param listener 监听对象
+     * @return 是否消息发送成功
+     */
     @Override
     public boolean sendAsync(IOArgs args, IOArgs.IOArgsEventListener listener) throws IOException {
+        // 如果通道关闭，抛出io异常
         if (isClosed.get()) {
             throw new IOException("Current channel is closed!");
         }
@@ -93,6 +104,9 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable {
         return ioProvider.registerOutput(channel, outputCallback);
     }
 
+    /**
+     * 关闭套接字通道适配器
+     */
     @Override
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
@@ -111,6 +125,9 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable {
      */
     private final IOProvider.HandleInputCallback inputCallback = new IOProvider.HandleInputCallback() {
 
+        /**
+         * 提供者能够输入
+         */
         @Override
         protected void canProviderInput() {
             if (isClosed.get()) {
@@ -127,12 +144,13 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable {
             try {
                 // 具体的读取操作
                 if (args.read(channel) > 0 && listener != null) {
-                    // 读取完成回调
+                    // 读取完成回调（回调操作包括：打印、继续读取下一条数据（继续为接收者设置IO事件监听器，注册输入回调方法））
                     listener.onCompleted(args);
                 } else {
                     throw new IOException("Cannot read any data!");
                 }
             } catch (IOException ignored) {
+                // 如果发生异常，则关闭本套接字通道适配器
                 CloseUtils.close(SocketChannelAdapter.this);
             }
         }
@@ -158,6 +176,11 @@ public class SocketChannelAdapter implements Sender, Receiver, Cloneable {
      */
     public interface OnChannelStatusChangedListener {
 
+        /**
+         * 当通道关闭时
+         *
+         * @param channel 客户端通道
+         */
         void onChannelClosed(SocketChannel channel);
     }
 }

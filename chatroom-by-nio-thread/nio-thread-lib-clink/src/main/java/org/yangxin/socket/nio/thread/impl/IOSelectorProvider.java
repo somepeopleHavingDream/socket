@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * IO复用选择器提供者
+ * IO选择器提供者
  *
  * @author yangxin
  * 2020/08/12 16:27
@@ -31,9 +31,12 @@ public class IOSelectorProvider implements IOProvider {
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
     /**
-     * 是否处于某个过程
+     * 是否处于某个过程（处于注册的输入回调）
      */
     private final AtomicBoolean inRegInput = new AtomicBoolean(false);
+    /**
+     * （处于注册的输出回调）
+     */
     private final AtomicBoolean inRegOutput = new AtomicBoolean(false);
 
     /**
@@ -48,11 +51,11 @@ public class IOSelectorProvider implements IOProvider {
     /**
      * 输入回调map
      */
-    private final HashMap<SelectionKey, Runnable> inputCallbackMap = new HashMap<>();
+    private final Map<SelectionKey, Runnable> inputCallbackMap = new HashMap<>();
     /**
      * 输出回调map
      */
-    private final HashMap<SelectionKey, Runnable> outputCallbackMap = new HashMap<>();
+    private final Map<SelectionKey, Runnable> outputCallbackMap = new HashMap<>();
 
     /**
      * 读事件处理线程池
@@ -64,6 +67,7 @@ public class IOSelectorProvider implements IOProvider {
     private final ExecutorService outputHandlePool;
 
     public IOSelectorProvider() throws IOException {
+        // 打开读写选择器
         readSelector = Selector.open();
         writeSelector = Selector.open();
 
@@ -71,6 +75,7 @@ public class IOSelectorProvider implements IOProvider {
 //                new IOProviderThreadFactory("IoProvider-Input-Thread-"));
 //        outputHandlePool = Executors.newFixedThreadPool(4,
 //                new IOProviderThreadFactory("IoProvider-Output-Thread-"));
+        // 创建读写处理线程池
         inputHandlePool = Executors.newFixedThreadPool(4);
         outputHandlePool = Executors.newFixedThreadPool(4);
 
@@ -89,6 +94,10 @@ public class IOSelectorProvider implements IOProvider {
             public void run() {
                 while (!isClosed.get()) {
                     try {
+                        /*
+                            Q: select()方法不是要阻塞直到至少有一个channel被selected，或者线程被中断才返回吗？
+                            A: select()可以被直接唤醒（selector.wakeup()），退出等待状态，此时得到的值可能是0
+                         */
                         if (readSelector.select() == 0) {
                             waitSelection(inRegInput);
                             continue;
@@ -132,7 +141,10 @@ public class IOSelectorProvider implements IOProvider {
                         Set<SelectionKey> selectionKeys = writeSelector.selectedKeys();
                         for (SelectionKey selectionKey : selectionKeys) {
                             if (selectionKey.isValid()) {
-                                handleSelection(selectionKey, SelectionKey.OP_WRITE, outputCallbackMap, outputHandlePool);
+                                handleSelection(selectionKey,
+                                        SelectionKey.OP_WRITE,
+                                        outputCallbackMap,
+                                        outputHandlePool);
                             }
                         }
                         selectionKeys.clear();
@@ -146,34 +158,70 @@ public class IOSelectorProvider implements IOProvider {
         thread.start();
     }
 
+    /**
+     * 注册输入
+     *
+     * @param channel 通道
+     * @param callback 回调
+     * @return 是否注册输入成功
+     */
     @Override
     public boolean registerInput(SocketChannel channel, HandleInputCallback callback) {
-        return registerSelection(channel, readSelector, SelectionKey.OP_READ, inRegInput,
-                inputCallbackMap, callback) != null;
+        return registerSelection(channel,
+                readSelector,
+                SelectionKey.OP_READ,
+                inRegInput,
+                inputCallbackMap,
+                callback) != null;
     }
 
+    /**
+     * 注册输出
+     *
+     * @param channel 通道
+     * @param callback 回调
+     * @return 是否注册输出成功
+     */
     @Override
     public boolean registerOutput(SocketChannel channel, HandleOutputCallback callback) {
-        return registerSelection(channel, writeSelector, SelectionKey.OP_WRITE, inRegOutput,
+        return registerSelection(channel,
+                writeSelector,
+                SelectionKey.OP_WRITE,
+                inRegOutput,
                 outputCallbackMap, callback) != null;
     }
 
+    /**
+     * 取消注册输入
+     *
+     * @param channel 通道
+     */
     @Override
     public void unRegisterInput(SocketChannel channel) {
         unRegisterSelection(channel, readSelector, inputCallbackMap);
     }
 
+    /**
+     * 取消注册输出
+     *
+     * @param channel 通道
+     */
     @Override
     public void unRegisterOutput(SocketChannel channel) {
         unRegisterSelection(channel, writeSelector, outputCallbackMap);
     }
 
+    /**
+     * IO选择器提供者关闭
+     */
     @Override
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
+            // 输入输出事件处理线程池关闭
             inputHandlePool.shutdown();
             outputHandlePool.shutdown();
 
+            // 清空输入输出回调
             inputCallbackMap.clear();
             outputCallbackMap.clear();
 
@@ -200,11 +248,22 @@ public class IOSelectorProvider implements IOProvider {
         }
     }
 
-    private static SelectionKey registerSelection(SocketChannel channel, Selector selector,
-                                                  int registerOps, AtomicBoolean locker,
-                                                  HashMap<SelectionKey, Runnable> map,
+    /**
+     * 注册选择
+     *
+     * @param channel 套接字通道
+     * @param selector 选择器
+     * @param registerOps 注册操作
+     * @param locker 锁
+     * @param map map
+     * @param runnable 可运行
+     */
+    private static SelectionKey registerSelection(SocketChannel channel,
+                                                  Selector selector,
+                                                  int registerOps,
+                                                  AtomicBoolean locker,
+                                                  Map<SelectionKey, Runnable> map,
                                                   Runnable runnable) {
-
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (locker) {
             // 设置锁定状态
@@ -226,7 +285,8 @@ public class IOSelectorProvider implements IOProvider {
                 if (key == null) {
                     // 注册selector得到Key
                     key = channel.register(selector, registerOps);
-                    // 注册回调
+                    // 注册回调（也许在这里并不需要通过通道的某一时间来确定需要执行哪一个回调操作，这也就是为什么key类型是SelectionKey）
+                    // 并且SelectionKey在注册到channel时，不会因为感兴趣的事件的不同而产生不同的SelectionKey。
                     map.put(key, runnable);
                 }
 
@@ -245,6 +305,13 @@ public class IOSelectorProvider implements IOProvider {
         }
     }
 
+    /**
+     * 取消注册选择
+     *
+     * @param channel 客户端通道
+     * @param selector 选择器
+     * @param map map
+     */
     private static void unRegisterSelection(SocketChannel channel, Selector selector,
                                             Map<SelectionKey, Runnable> map) {
         if (channel.isRegistered()) {
@@ -262,13 +329,12 @@ public class IOSelectorProvider implements IOProvider {
      * 处理读事件
      */
     private static void handleSelection(SelectionKey key, int keyOps,
-                                        HashMap<SelectionKey, Runnable> map,
+                                        Map<SelectionKey, Runnable> map,
                                         ExecutorService pool) {
         // 重点
         // 取消继续对keyOps的监听
         // 对于键来说感兴趣的操作
         key.interestOps(key.interestOps() & ~keyOps);
-//        key.interestOps(key.readyOps() & ~keyOps);
 
         Runnable runnable = null;
         try {

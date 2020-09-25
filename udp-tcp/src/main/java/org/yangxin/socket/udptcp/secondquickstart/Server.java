@@ -38,7 +38,6 @@ public class Server {
     private static class ClientHandler implements Runnable {
 
         private final Socket socket;
-//        private boolean flag = true;
 
         ClientHandler(Socket socket) {
             this.socket = socket;
@@ -55,25 +54,10 @@ public class Server {
                 // 得到输入流，用于接收数据
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-//                do {
-//                    // 从客户端拿到一条数据
-//                    String s = bufferedReader.readLine();
-//                    if ("bye".equalsIgnoreCase(s)) {
-//                        flag = false;
-//                        // 回送
-//                        printStream.println("bye");
-//                    } else {
-//                        // 打印到屏幕，并回送数据长度
-//                        System.out.println(s);
-//                        printStream.println("回送：" + s.length());
-//                    }
-//                } while (flag);
-
                 while (!Thread.interrupted()) {
                     // 从客户端拿到一条数据
                     String s = bufferedReader.readLine();
                     if ("bye".equalsIgnoreCase(s)) {
-//                        flag = false;
                         // 回送
                         printStream.println("bye");
                         Thread.currentThread().interrupt();

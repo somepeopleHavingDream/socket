@@ -40,7 +40,6 @@ public class UDPSearcher {
         Thread thread = new Thread(listener);
         thread.start();
         listener.setThread(thread);
-//        new Thread(listener).start();
 
         countDownLatch.await();
 
@@ -78,7 +77,6 @@ public class UDPSearcher {
         private final Integer listenPort;
         private final CountDownLatch countDownLatch;
         private final List<Device> deviceList = new ArrayList<>();
-//        private boolean done = false;
         private DatagramSocket datagramSocket = null;
         private Thread thread;
 
@@ -105,7 +103,6 @@ public class UDPSearcher {
                 // 监听回送端口
                 datagramSocket = new DatagramSocket(listenPort);
                 while (!Thread.interrupted()) {
-//                while (!done) {
                     // 构建接收实体
                     final byte[] buffer = new byte[512];
                     DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
@@ -143,7 +140,6 @@ public class UDPSearcher {
         }
 
         List<Device> getDevicesAndClose() {
-//            done = true;
             thread.interrupt();
             close();
             return deviceList;

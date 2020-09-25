@@ -39,6 +39,9 @@ public class Client {
         System.out.println("客户端已退出。");
     }
 
+    /**
+     * 初始化套接字
+     */
     @SuppressWarnings("ConstantConditions")
     private static void todo(Socket client) throws IOException {
         // 得到Socket输出流
@@ -123,6 +126,9 @@ public class Client {
         socket.setPerformancePreferences(1, 1, 0);
     }
 
+    /**
+     * 创建一个套接字
+     */
     private static Socket createSocket() throws IOException {
 //        // 无代理模式，等效于空构造函数
 //        Socket socket = new Socket(Proxy.NO_PROXY);

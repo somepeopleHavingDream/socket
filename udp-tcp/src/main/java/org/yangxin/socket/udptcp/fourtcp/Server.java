@@ -38,6 +38,9 @@ public class Server {
         }
     }
 
+    /**
+     * 初始化ServerSocket对象
+     */
     private static void initServerSocket(ServerSocket serverSocket) throws SocketException {
         // 是否复用未完全关闭的地址端口
         serverSocket.setReuseAddress(true);
@@ -70,6 +73,8 @@ public class Server {
     }
 
     /**
+     * 对客户端连接的处理
+     *
      * @author yangxin
      * 2020/07/05 21:39
      */

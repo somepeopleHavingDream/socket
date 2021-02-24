@@ -16,6 +16,7 @@
         <module>nio-thread-lib-clink</module>
         <module>nio-thread-sample-server</module>
         <module>nio-thread-sample-client</module>
+        <module>nio-thread-sample-foo</module>
     </modules>
 
 </project>

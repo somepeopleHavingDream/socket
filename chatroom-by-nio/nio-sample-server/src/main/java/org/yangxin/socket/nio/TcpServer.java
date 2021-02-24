@@ -19,16 +19,18 @@ import java.util.concurrent.Executors;
  * @author yangxin
  * 2020/08/12 09:12
  */
-public class TCPServer implements ClientHandler.ClientHandlerCallback {
+@SuppressWarnings({"AlibabaThreadPoolCreation", "AlibabaAvoidManuallyCreateThread"})
+public class TcpServer implements ClientHandler.ClientHandlerCallback {
 
     private final int port;
     private ClientListener listener;
     private final List<ClientHandler> clientHandlerList = new ArrayList<>();
     private final ExecutorService forwardingThreadPoolExecutor;
     private Selector selector;
-    private ServerSocketChannel server;
+    private ServerSocketChannel serverSocketChannel;
 
-    public TCPServer(int port) {
+    public TcpServer(int port) {
+        // 服务端tcp端口
         this.port = port;
         // 转发线程池
         this.forwardingThreadPoolExecutor = Executors.newSingleThreadExecutor();
@@ -43,16 +45,16 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
             selector = Selector.open();
 
             // 打开一个ServerSocket通道
-            ServerSocketChannel server = ServerSocketChannel.open();
+            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
             // 设置为非阻塞
-            server.configureBlocking(false);
+            serverSocketChannel.configureBlocking(false);
             // 绑定本地端口
-            server.socket().bind(new InetSocketAddress(port));
-            // 注册客户端连接到达监听
-            server.register(selector, SelectionKey.OP_ACCEPT);
+            serverSocketChannel.socket().bind(new InetSocketAddress(port));
+            // 注册客户端连接到达监听事件
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-            this.server = server;
-            System.out.println("服务器信息：" + server.getLocalAddress().toString());
+            this.serverSocketChannel = serverSocketChannel;
+            System.out.println("服务器信息：" + serverSocketChannel.getLocalAddress().toString());
 
             // 启动客户端监听
             ClientListener listener = this.listener = new ClientListener();
@@ -72,10 +74,10 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
             listener.exit();
         }
 
-        CloseUtils.close(server);
+        CloseUtils.close(serverSocketChannel);
         CloseUtils.close(selector);
 
-        synchronized (TCPServer.this) {
+        synchronized (TcpServer.this) {
             for (ClientHandler clientHandler : clientHandlerList) {
                 clientHandler.exit();
             }
@@ -107,7 +109,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
         System.out.println("Received-" + handler.getClientInfo() + ":" + msg);
         // 异步提交转发任务
         forwardingThreadPoolExecutor.execute(() -> {
-            synchronized (TCPServer.this) {
+            synchronized (TcpServer.this) {
                 for (ClientHandler clientHandler : clientHandlerList) {
                     if (clientHandler.equals(handler)) {
                         // 跳过自己
@@ -134,7 +136,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
         @Override
         public void run() {
-            Selector selector = TCPServer.this.selector;
+            Selector selector = TcpServer.this.selector;
             System.out.println("服务器准备就绪～");
 
             // 等待客户端连接
@@ -167,11 +169,11 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
                             try {
                                 // 客户端构建异步线程
                                 ClientHandler clientHandler = new ClientHandler(socketChannel,
-                                        TCPServer.this);
+                                        TcpServer.this);
                                 // 读取数据并打印，开启读事件处理线程
                                 clientHandler.readToPrint();
                                 // 添加同步处理
-                                synchronized (TCPServer.this) {
+                                synchronized (TcpServer.this) {
                                     clientHandlerList.add(clientHandler);
                                 }
                             } catch (IOException e) {
@@ -190,7 +192,6 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
         void exit() {
             thread.interrupt();
-//            done = true;
             // 唤醒当前的阻塞
             selector.wakeup();
         }

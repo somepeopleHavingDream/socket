@@ -14,14 +14,16 @@ import java.util.concurrent.Executors;
  * @author yangxin
  * 2020/08/03 16:56
  */
-public class TCPServer implements ClientHandler.ClientHandlerCallback {
+@SuppressWarnings({"AlibabaThreadPoolCreation", "AlibabaAvoidManuallyCreateThread"})
+public class TcpServer implements ClientHandler.ClientHandlerCallback {
 
     private final int port;
     private ClientListener mListener;
     private final List<ClientHandler> clientHandlerList = new ArrayList<>();
     private final ExecutorService forwardingThreadPoolExecutor;
 
-    public TCPServer(int port) {
+    public TcpServer(int port) {
+        // 端口
         this.port = port;
         // 转发线程池
         this.forwardingThreadPoolExecutor = Executors.newSingleThreadExecutor();
@@ -34,6 +36,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
         try {
             ClientListener listener = new ClientListener(port);
             mListener = listener;
+
             Thread thread = new Thread(listener);
             listener.setThread(thread);
             thread.start();
@@ -49,7 +52,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
             mListener.exit();
         }
 
-        synchronized (TCPServer.this) {
+        synchronized (TcpServer.this) {
             for (ClientHandler clientHandler : clientHandlerList) {
                 clientHandler.exit();
             }
@@ -79,7 +82,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
         System.out.println("Received-" + handler.getClientInfo() + ":" + msg);
         // 异步提交转发任务
         forwardingThreadPoolExecutor.execute(() -> {
-            synchronized (TCPServer.this) {
+            synchronized (TcpServer.this) {
                 for (ClientHandler clientHandler : clientHandlerList) {
                     if (clientHandler.equals(handler)) {
                         // 跳过自己
@@ -126,12 +129,16 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
                     continue;
                 }
                 try {
-                    // 客户端构建异步线程
-                    ClientHandler clientHandler = new ClientHandler(client, TCPServer.this);
-                    // 读取数据并打印，开启对读事件的处理线程
+                    // 为客户端构建异步线程
+                    ClientHandler clientHandler = new ClientHandler(client, TcpServer.this);
+                    // 读取数据并打印，开启对读事件的处理线程（阻塞IO的问题就出在这里，为了防止服务端为每个客户端请求创建了一个读线程，
+                    /*
+                        读取数据并打印，开启对读事件的处理线程。
+                        阻塞IO的问题就出在这里，为了让服务端在不阻塞主线程的情况下，响应客户端的读请求，采用bio必须要为每个客户端创建子线程。
+                     */
                     clientHandler.readToPrint();
                     // 添加同步处理
-                    synchronized (TCPServer.this) {
+                    synchronized (TcpServer.this) {
                         clientHandlerList.add(clientHandler);
                     }
                 } catch (IOException e) {

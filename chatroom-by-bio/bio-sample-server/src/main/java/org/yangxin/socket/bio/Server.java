@@ -16,7 +16,7 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         // 开启tcp服务端
-        TCPServer tcpServer = new TCPServer(TCPConstants.PORT_SERVER);
+        TcpServer tcpServer = new TcpServer(TCPConstants.PORT_SERVER);
         boolean isSucceed = tcpServer.start();
         if (!isSucceed) {
             System.out.println("Start TCP server failed!");

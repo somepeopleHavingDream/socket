@@ -13,13 +13,13 @@
     <dependencies>
         <dependency>
             <groupId>org.yangxin.socket</groupId>
-            <artifactId>lib-clink</artifactId>
+            <artifactId>bio-lib-clink</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.yangxin.socket</groupId>
-            <artifactId>sample-foo</artifactId>
+            <artifactId>bio-sample-foo</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

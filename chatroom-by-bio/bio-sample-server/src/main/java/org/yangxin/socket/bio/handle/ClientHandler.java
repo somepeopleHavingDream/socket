@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
  * @author yangxin
  * 2020/08/03 16:51
  */
+@SuppressWarnings("AlibabaAvoidManuallyCreateThread")
 public class ClientHandler {
 
     private final Socket socket;
@@ -28,6 +29,7 @@ public class ClientHandler {
         this.clientHandlerCallback = clientHandlerCallback;
         this.clientInfo = "A[" + socket.getInetAddress().getHostAddress()
                 + "] P[" + socket.getPort() + "]";
+
         System.out.println("新客户端连接：" + clientInfo);
     }
 
@@ -48,7 +50,7 @@ public class ClientHandler {
     }
 
     /**
-     * 读取数据并打印
+     * 读取数据并打印，新开读线程
      */
     public void readToPrint() {
         Thread thread = new Thread(readHandler);
@@ -66,10 +68,19 @@ public class ClientHandler {
      * 2020/08/03 16:53
      */
     public interface ClientHandlerCallback {
-        // 自身关闭通知
+
+        /**
+         * 自身关闭通知
+         * @param handler 处理者
+         */
         void onSelfClosed(ClientHandler handler);
 
-        // 收到消息时通知
+        /**
+         * 收到消息时通知
+         *
+         * @param handler 处理者
+         * @param msg 消息
+         */
         void onNewMessageArrived(ClientHandler handler, String msg);
     }
 
@@ -123,7 +134,6 @@ public class ClientHandler {
 
         void exit() {
             thread.interrupt();
-//            done = true;
             CloseUtils.close(inputStream);
         }
     }

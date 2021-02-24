@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
  * @author yangxin
  * 2020/08/12 16:49
  */
+@SuppressWarnings("AlibabaAvoidManuallyCreateThread")
 public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
     private final int port;
